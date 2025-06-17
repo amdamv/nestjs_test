@@ -4,17 +4,18 @@ import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
+import { IPaginationOptions, Pagination, paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
-  private Logger = new Logger("UserService")
+  private Logger = new Logger(UserService.name)
     constructor(
       @InjectRepository(UserEntity)
       private readonly userRepo: Repository<UserEntity>
     ){}
 
-   public findAll (): Promise<UserEntity[]>{
-      return this.userRepo.find();
+   public paginate (options: IPaginationOptions): Promise<Pagination<UserEntity>>{
+      return paginate<UserEntity>(this.userRepo, options);
   }
 
   async findOnebyId (id: number): Promise<UserEntity>{

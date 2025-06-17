@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
 import { UserEntity } from './entities/user.entity';
 import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller('user')
 export class UserController {
@@ -16,8 +18,9 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll(): Promise<UserEntity[]>{
-    return this.userService.findAll()
+  findAll(@Query()queryDto: PaginationQueryDto): Promise<Pagination<UserEntity>>{
+    const options = {page: queryDto.page, limit: queryDto.limit}
+    return this.userService.paginate(options)
   }
 
   @UseGuards(AuthGuard('jwt'))
