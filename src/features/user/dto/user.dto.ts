@@ -1,10 +1,6 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, IsUUID, MinLength } from 'class-validator';
-import { PrimaryGeneratedColumn } from 'typeorm';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class CreateUserDto{
-    @PrimaryGeneratedColumn()
-    id: number
-
     @IsString()
     @IsNotEmpty()
     @MinLength(2)
@@ -18,11 +14,13 @@ export class CreateUserDto{
     password: string
 
     @IsNumber()
-    age: number
+    age?: number
 
+   @IsOptional()
     @IsString()
     description?:  string
 
+    @IsOptional()
     @IsString()
     refreshToken?: string
 }

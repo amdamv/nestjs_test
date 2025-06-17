@@ -77,21 +77,18 @@ export class AuthService {
     return tokens;
   }
 
-  async register(
-    userDto: CreateUserDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const existingUser = await this.userService.findOneByEmail(userDto.email);
-    if (existingUser) {
-      throw new BadRequestException('This email already in use');
+  async register( userDto: CreateUserDto): Promise<UserEntity> {
+    const existUser = await this.userService.findOneByEmail(userDto.email);
+    console.log(existUser);
+    if (existUser) {
+      throw new BadRequestException('User already exists')
     }
-    const hashedPassword = await bcrypt.hash(userDto.password, 10);
-    const newUser = await this.userService.createUser({
-      ...userDto,
-      password: hashedPassword,
-    });
 
-    const tokens = await this.generateTokens(newUser);
-    await this.saveRefreshToken(newUser.id, tokens.refreshToken);
-    return tokens;
+    const hashedPassword = await bcrypt.hash(userDto.password, 10)
+    const newUser = await this.userService.createUser({
+    ...userDto,
+    password: hashedPassword
+  })
+    return newUser
   }
 }

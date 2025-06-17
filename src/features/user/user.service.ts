@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../databases/entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { IPaginationOptions, Pagination, paginate } from 'nestjs-typeorm-paginate';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 @Injectable()
 export class UserService {
@@ -14,9 +15,15 @@ export class UserService {
       private readonly userRepo: Repository<UserEntity>
     ){}
 
-   async paginate (options: IPaginationOptions): Promise<Pagination<UserEntity>>{
-      return  paginate<UserEntity>( this.userRepo, options)
-  }
+async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<UserEntity>> {
+    const queryBuilder = this.userRepo.createQueryBuilder('user')
+    if(email){
+      queryBuilder.where('LOWER(user.email) LIKE :email', { email: `%${email.toLowerCase()}%` })
+    }
+
+    const result = await paginate<UserEntity>(this.userRepo, options, {email});
+    return result
+}
 
   async findOnebyId (id: number): Promise<UserEntity>{
       const userData = await this.userRepo.findOneBy({ id });
