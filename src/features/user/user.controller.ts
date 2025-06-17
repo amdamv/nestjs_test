@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from '../../databases/entities/user.entity';
 import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 
