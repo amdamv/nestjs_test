@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/user.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { UserEntity } from '../user/entities/user.entity';
+import { UserEntity } from '../../databases/entities/user.entity';
 import { Response } from 'express';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';

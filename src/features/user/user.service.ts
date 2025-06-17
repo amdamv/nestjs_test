@@ -1,6 +1,6 @@
-import { BadRequestException, HttpException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from '../../databases/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
@@ -20,7 +20,7 @@ export class UserService {
   async findOnebyId (id: number): Promise<UserEntity>{
       const userData = await this.userRepo.findOneBy({ id });
       if (!userData) {
-        throw new HttpException('User not found', 404)
+        throw new NotFoundException('User not found')
       }
       return userData
     }
@@ -47,7 +47,7 @@ export class UserService {
 
   updateRefreshToken(userId: number, hashedToken: string){
     const existedRefresh = this.userRepo.update(userId, { refreshToken: hashedToken });
-
+    return existedRefresh
   }
 
   async deleteUser(id: number){
