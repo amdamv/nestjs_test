@@ -24,6 +24,7 @@ export class UserController {
   return await this.userService.paginate(options, email);
   }
 
+
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
    findOne(@Param('id', ParseIntPipe) id: number ): Promise<UserEntity>{

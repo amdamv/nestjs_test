@@ -8,6 +8,8 @@ import { LocalStrategy } from './strategy/local.strategy';
 import * as process from 'node:process';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConfigService } from '@nestjs/config';
+import { TokenService } from './token.service';
+import { RedisModule } from '../../databases/redis/redis.module';
 
 @Module({
   imports: [
@@ -20,9 +22,10 @@ import { ConfigService } from '@nestjs/config';
       })
     }),
     UserModule,
+    RedisModule,
   PassportModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, JwtService, LocalStrategy, JwtStrategy, TokenService],
   exports: [AuthService]
 })
 export class AuthModule {}
