@@ -18,10 +18,12 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAllUser(@Query() query: PaginationQueryDto): Promise<Pagination<UserEntity>>{
-  const options = {page: query.page, limit: query.limit}
-  return this.userService.paginate(options)
+  async findAllUser(@Query() query: PaginationQueryDto): Promise<Pagination<UserEntity>>{
+  const {page, limit, email} = query;
+  const options = {page, limit}
+  return await this.userService.paginate(options, email);
   }
+
 
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
