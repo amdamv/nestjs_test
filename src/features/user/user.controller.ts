@@ -7,13 +7,22 @@ import { AuthGuard } from '@nestjs/passport';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { User } from './user-decorator/user.decorator';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
+
 
 @UseGuards(AuthGuard('jwt'))
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+
 @UseGuards(LocalAuthGuard)
   @Post()
+  @ApiBody({
+    type: CreateUserDto,
+    description: 'Json structure for user object',
+  })
    createUser(@Body() createUserDto: CreateUserDto){
     return this.userService.createUser(createUserDto)
   }
