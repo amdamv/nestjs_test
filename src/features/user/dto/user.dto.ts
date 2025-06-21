@@ -23,4 +23,7 @@ export class CreateUserDto{
     @IsOptional()
     @IsString()
     refreshToken?: string
+
+  @IsOptional()
+  deletedAt: number
 }

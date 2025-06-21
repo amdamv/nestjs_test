@@ -20,9 +20,12 @@ async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<
     if(email){
       queryBuilder.where('LOWER(user.email) LIKE :email', { email: `%${email.toLowerCase()}%` })
     }
-
     const result = await paginate<UserEntity>(this.userRepo, options, {email});
     return result
+}
+
+async profile(id: number){
+    return await this.userRepo.findOneBy({ id });
 }
 
   async findOnebyId (id: number): Promise<UserEntity>{
@@ -41,14 +44,14 @@ async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<
     }
 
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity>{
-    const newUser: UserEntity = await this.userRepo.create(createUserDto);
-    return this.userRepo.save(newUser)
+    const newUser: UserEntity = this.userRepo.create(createUserDto);
+    return  await this.userRepo.save(newUser)
   }
 
   async updateUser(id: number, updateUserDto: UpdateUserDto){
     const userUpdate = await this.userRepo.update(id, updateUserDto)
     if(!userUpdate){
-      throw new BadRequestException('Theres missing somethiing')
+      throw new BadRequestException('Theres missing something')
     }
     return userUpdate
   }
@@ -60,6 +63,6 @@ async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<
 
   async deleteUser(id: number){
     const user = await this.findOnebyId(id)
-    return this.userRepo.remove(user)
+    return this.userRepo.softRemove(user)
   }
 }
