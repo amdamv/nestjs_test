@@ -9,7 +9,9 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import * as ms from 'ms'
 import { TokenService } from './token.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
