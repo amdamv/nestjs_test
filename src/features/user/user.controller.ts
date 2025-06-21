@@ -6,7 +6,9 @@ import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { User } from './user-decorator/user.decorator';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -16,7 +18,6 @@ export class UserController {
     return this.userService.createUser(createUserDto)
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   async findAllUser(@Query() query: PaginationQueryDto): Promise<Pagination<UserEntity>>{
   const {page, limit, email} = query;
@@ -25,19 +26,22 @@ export class UserController {
   }
 
 
-  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  async me(@User() user: UserEntity){
+    console.log(user)
+    return this.userService.profile(user.id)
+  }
+
   @Get(':id')
    findOne(@Param('id', ParseIntPipe) id: number ): Promise<UserEntity>{
     return this.userService.findOnebyId(id)
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
-  updateUser(@Param('id', ParseIntPipe) id: number, createUserDto: CreateUserDto){
+  updateUser(@Param('id', ParseIntPipe) id: number, @Body() createUserDto: CreateUserDto){
     return this.userService.updateUser(id, createUserDto)
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   removeUser(@Param('id', ParseIntPipe)id: number){
     return this.userService.deleteUser(id)
