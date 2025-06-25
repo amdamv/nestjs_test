@@ -1,34 +1,37 @@
-import {Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class UserEntity {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({type: "varchar", length: 30})
-    fullname: string
+  @Column({ type: 'varchar', length: 30 })
+  fullname: string;
 
-    @Column({ unique: true, type: "varchar", length: 30})
-    email: string
+  @Column({ unique: true, type: 'varchar', length: 30 })
+  email: string;
 
-    @Column({type: "varchar", length: 100, nullable: false})
-    password: string
+  @Column({ type: 'varchar', length: 100, nullable: false })
+  password: string;
 
-    @Column({type: 'int', nullable: true})
-    age: number
+  @Column({ type: 'int', nullable: true })
+  age: number;
 
-    @Column({type: "varchar", length: 225, nullable: true})
-    description?: string
+  @Column({ type: 'varchar', length: 225, nullable: true })
+  description?: string;
 
-    @Column({type: 'varchar', length: 512, nullable: true})
-    refreshToken?: string
+  @Column({ nullable: true })
+  avatar: string;
 
-    @CreateDateColumn()
-    createdAt: Date
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  refreshToken?: string;
 
-    @UpdateDateColumn()
-    updatedAt: Date
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @DeleteDateColumn({ nullable: true })
-  deletedAt: Date
+  deletedAt: Date;
 }

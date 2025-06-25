@@ -5,6 +5,9 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { CreateAvatarDto } from './dto/create-avatar.dto';
+import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-file.interface';
+import { IFileService } from 'src/providers/files/files.adapter';
 
 @Injectable()
 export class UserService {
@@ -13,6 +16,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    private readonly fileService: IFileService,
   ) {}
 
   async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<UserEntity>> {
@@ -50,6 +54,13 @@ export class UserService {
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     const newUser: UserEntity = this.userRepo.create(createUserDto);
     return await this.userRepo.save(newUser);
+  }
+
+  async createAvatar(dto: CreateAvatarDto, file: IUploadedMulterFile, id: string) {
+    const { path } = await this.fileService.uploadFile({ file, folder: dto.folder, name: dto.name });
+    console.log('user id:', id);
+    await this.userRepo.update(id, { avatar: path });
+    return { path };
   }
 
   async updateUser(id: number, updateUserDto: UpdateUserDto) {
