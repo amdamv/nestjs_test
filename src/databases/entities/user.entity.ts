@@ -20,8 +20,8 @@ export class UserEntity {
   @Column({ type: 'varchar', length: 225, nullable: true })
   description?: string;
 
-  @Column({ nullable: true })
-  avatar: string;
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  avatar?: string | null;
 
   @Column({ type: 'varchar', length: 512, nullable: true })
   refreshToken?: string;
