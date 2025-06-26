@@ -8,6 +8,7 @@ import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginat
 import { CreateAvatarDto } from './dto/create-avatar.dto';
 import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-file.interface';
 import { IFileService } from 'src/providers/files/files.adapter';
+import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
 
 @Injectable()
 export class UserService {
@@ -33,7 +34,17 @@ export class UserService {
   }
 
   async profile(id: number) {
-    return await this.userRepo.findOneBy({ id });
+    const user = await this.userRepo.findOne({ where: { id } });
+
+    if (!user) {
+      throw new BadRequestException('Profile not found');
+    }
+    return {
+      fullname: user.fullname,
+      email: user.email,
+      age: user.age,
+      description: user.description,
+    };
   }
 
   async findOnebyId(id: number): Promise<UserEntity> {
@@ -58,9 +69,15 @@ export class UserService {
 
   async createAvatar(dto: CreateAvatarDto, file: IUploadedMulterFile, id: string) {
     const { path } = await this.fileService.uploadFile({ file, folder: dto.folder, name: dto.name });
-    console.log('user id:', id);
+    console.log('user id:', id, 'Path: ', path);
     await this.userRepo.update(id, { avatar: path });
     return { path };
+  }
+
+  async deleteAvatar(dto: RemoveFilePayloadDto, id: string) {
+    const { path } = dto;
+    await this.userRepo.update(id, { avatar: null });
+    return this.fileService.removeFile({ path });
   }
 
   async updateUser(id: number, updateUserDto: UpdateUserDto) {

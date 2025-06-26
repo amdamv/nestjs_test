@@ -24,12 +24,17 @@ import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-file.interface';
 import { CreateAvatarDto } from './dto/create-avatar.dto';
+import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
+import { RedisService } from '../../databases/redis/redis.service';
 
 @ApiTags('User')
 @UseGuards(AuthGuard('jwt'))
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly redisService: RedisService,
+  ) {}
 
   @UseGuards(LocalAuthGuard)
   @Post()
@@ -55,8 +60,17 @@ export class UserController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
-    return this.userService.findOnebyId(id);
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
+    const key = `userId: ${id}`;
+    const cached = await this.redisService.getObject<UserEntity>(key);
+    console.log('cached user: ', cached);
+    if (cached) {
+      return cached;
+    }
+    const user = await this.userService.findOnebyId(id);
+    await this.redisService.setObject(key, user, 60);
+    console.log('Not Cached yet: ', user);
+    return user;
   }
 
   @Patch(':id')
@@ -70,6 +84,13 @@ export class UserController {
   async uploadFile(@Body() dto: CreateAvatarDto, @UploadedFile() file: IUploadedMulterFile, @User('id') id: string) {
     console.log('Current user id:', id);
     return this.userService.createAvatar(dto, file, id);
+  }
+
+  @ApiOperation({ summary: 'body/form-data - key=file, value= choose-file' })
+  @Delete('avatar/upload-photo')
+  @UseInterceptors(FileInterceptor('file'))
+  async deleteFile(@Body() dto: RemoveFilePayloadDto, @User() id: string) {
+    return this.userService.deleteAvatar(dto, id);
   }
 
   @Delete(':id')
