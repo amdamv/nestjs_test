@@ -16,7 +16,6 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
 import { UserEntity } from '../../databases/entities/user.entity';
 import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
-import { AuthGuard } from '@nestjs/passport';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { User } from './user-decorator/user.decorator';
@@ -27,14 +26,18 @@ import { CreateAvatarDto } from './dto/create-avatar.dto';
 import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
 import { RedisService } from '../../databases/redis/redis.service';
 import { TransactionDto } from './dto/transaction.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UserTransactionProvider } from './user-transaction.provider';
+import { UpdateUserDto } from './dto/update.user.dto';
 
 @ApiTags('User')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(JwtAuthGuard)
 @Controller('user')
 export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly redisService: RedisService,
+    private readonly userTransactionProvider: UserTransactionProvider,
   ) {}
 
   @UseGuards(LocalAuthGuard)
@@ -75,8 +78,8 @@ export class UserController {
   }
 
   @Patch(':id')
-  updateUser(@Param('id', ParseIntPipe) id: number, @Body() createUserDto: CreateUserDto) {
-    return this.userService.updateUser(id, createUserDto);
+  updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateUser(id, updateUserDto);
   }
 
   @ApiOperation({ summary: 'body/form-data - key=file, value= choose-file' })
@@ -99,9 +102,10 @@ export class UserController {
     return this.userService.deleteUser(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('transaction')
-  async userTransaction(@Body() transactionDto: TransactionDto) {
-    const { senderId, receiverId, amount } = transactionDto;
-    return this.userService.transaferFunds(senderId, receiverId, amount);
+  async userTransaction(@User('id') id: string, @Body() transactionDto: TransactionDto) {
+    const { receiverId, amount } = transactionDto;
+    return this.userTransactionProvider.transaferFunds(id, receiverId, amount);
   }
 }
