@@ -1,6 +1,15 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Check,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
+@Check(`"balance" >= 0`)
 export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -34,4 +43,16 @@ export class UserEntity {
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
+
+  @Column({
+    type: 'decimal',
+    precision: 6,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => (value ? value.toFixed(2) : null),
+      from: (value) => parseFloat(value),
+    },
+  })
+  balance: number;
 }

@@ -26,6 +26,7 @@ import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-
 import { CreateAvatarDto } from './dto/create-avatar.dto';
 import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
 import { RedisService } from '../../databases/redis/redis.service';
+import { TransactionDto } from './dto/transaction.dto';
 
 @ApiTags('User')
 @UseGuards(AuthGuard('jwt'))
@@ -96,5 +97,11 @@ export class UserController {
   @Delete(':id')
   removeUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUser(id);
+  }
+
+  @Post('transaction')
+  async userTransaction(@Body() transactionDto: TransactionDto) {
+    const { senderId, receiverId, amount } = transactionDto;
+    return this.userService.transaferFunds(senderId, receiverId, amount);
   }
 }

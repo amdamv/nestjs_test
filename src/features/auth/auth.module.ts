@@ -13,19 +13,20 @@ import { RedisModule } from '../../databases/redis/redis.module';
 
 @Module({
   imports: [
-  JwtModule.registerAsync({
+    JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         global: true,
         secret: configService.get('JWT_SECRET'),
         signOptions: { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS },
-      })
+      }),
     }),
     UserModule,
     RedisModule,
-  PassportModule],
+    PassportModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService, JwtService, LocalStrategy, JwtStrategy, TokenService],
-  exports: [AuthService]
+  exports: [AuthService],
 })
 export class AuthModule {}
