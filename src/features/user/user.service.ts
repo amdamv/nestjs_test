@@ -1,13 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../databases/entities/user.entity';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
@@ -15,8 +9,6 @@ import { CreateAvatarDto } from './dto/create-avatar.dto';
 import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-file.interface';
 import { IFileService } from 'src/providers/files/files.adapter';
 import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
-import { UserTransactionProvider } from './user-transaction.provider';
-import { TransactionResponseDto } from './dto/response/transaction-response.dto';
 
 @Injectable()
 export class UserService {
@@ -26,8 +18,6 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
     private readonly fileService: IFileService,
-    private readonly dataSource: DataSource,
-    private readonly userTransactionProvider: UserTransactionProvider,
   ) {}
 
   async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<UserEntity>> {
@@ -98,33 +88,8 @@ export class UserService {
     return userUpdate;
   }
 
-  updateRefreshToken(userId: number, hashedToken: string) {
-    const existedRefresh = this.userRepo.update(userId, {
-      refreshToken: hashedToken,
-    });
-    return existedRefresh;
-  }
-
   async deleteUser(id: number) {
     const user = await this.findOnebyId(id);
     return this.userRepo.softRemove(user);
-  }
-
-  async transaferFunds(senderId: string, receiverId: string, amount: number): Promise<TransactionResponseDto> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      await this.userTransactionProvider.senderTransaction(senderId, amount, queryRunner);
-      await this.userTransactionProvider.receiverTransaction(receiverId, amount, queryRunner);
-      await queryRunner.commitTransaction();
-
-      return { senderId, receiverId, amount, message: 'Transaction completed successfully' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(`transactions is declined:  ${err}`);
-    } finally {
-      await queryRunner.release();
-    }
   }
 }

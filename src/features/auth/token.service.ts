@@ -7,23 +7,26 @@ import { UserService } from '../user/user.service';
 import { RedisService } from '../../databases/redis/redis.service';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interface/jwt-payload.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TokenService {
   constructor(
+    @InjectRepository(UserEntity) private readonly userRepo: Repository<UserEntity>,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
     private readonly redisService: RedisService,
   ) {}
 
-  generateTokens(userEntity: UserEntity): Promise<TokenInterface> {
+  async generateTokens(userEntity: UserEntity): Promise<TokenInterface> {
     const payload = { id: userEntity.id, email: userEntity.email };
-    const accessToken = this.jwtService.sign(payload, {
+    const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_MS'),
     });
-    const refreshToken = this.jwtService.sign(payload, {
+    const refreshToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get('REFRESH_TOKEN_SECRET'),
       expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRES_IN'),
     });
@@ -64,8 +67,15 @@ export class TokenService {
 
   async saveRefreshToken(userId: number, token: string) {
     const hashed: string = await bcrypt.hash(token, 10);
-    await this.userService.updateRefreshToken(userId, token);
+    await this.updateRefreshToken(userId, token);
     await this.redisService.set(`refresh:${userId}`, hashed);
+  }
+
+  updateRefreshToken(userId: number, hashedToken: string) {
+    const existedRefresh = this.userRepo.update(userId, {
+      refreshToken: hashedToken,
+    });
+    return existedRefresh;
   }
 
   async debugGetRefresh(userId: number) {

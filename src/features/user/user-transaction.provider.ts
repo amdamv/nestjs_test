@@ -1,9 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UserEntity } from '../../databases/entities/user.entity';
-import { QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
+import { TransactionResponseDto } from './dto/response/transaction-response.dto';
 
 @Injectable()
 export class UserTransactionProvider {
+  constructor(private readonly dataSource: DataSource) {}
+
+  async transaferFunds(senderId: string, receiverId: string, amount: number): Promise<TransactionResponseDto> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      await this.senderTransaction(senderId, amount, queryRunner);
+      await this.receiverTransaction(receiverId, amount, queryRunner);
+      await queryRunner.commitTransaction();
+      return { senderId, receiverId, amount, message: 'Transaction completed successfully' };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(`transactions is declined:  ${err}`);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async senderTransaction(userId: string, amount: number, queryRunner: QueryRunner) {
     const result = await queryRunner.manager
       .createQueryBuilder()
