@@ -1,5 +1,6 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -28,4 +29,10 @@ export class CreateUserDto {
 
   @IsOptional()
   deletedAt: number;
+
+  @IsOptional()
+  @Transform(({ value }) => parseFloat(value))
+  @IsNumber()
+  @Min(0)
+  balance?: number;
 }
