@@ -50,8 +50,13 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
+  @Get('findAll')
+  async findAll() {
+    return this.userService.findAll();
+  }
+
   @Get()
-  async findAllUser(@Query() query: PaginationQueryDto): Promise<Pagination<UserEntity>> {
+  async paginateAllUsers(@Query() query: PaginationQueryDto): Promise<Pagination<UserEntity>> {
     const { page, limit, email } = query;
     const options = { page, limit };
     return await this.userService.paginate(options, email);

@@ -20,6 +20,10 @@ export class UserService {
     private readonly fileService: IFileService,
   ) {}
 
+  async findAll(): Promise<UserEntity[]> {
+    return this.userRepo.find();
+  }
+
   async paginate(options: IPaginationOptions, email?: string): Promise<Pagination<UserEntity>> {
     const queryBuilder = this.userRepo.createQueryBuilder('user');
     if (email) {
@@ -27,9 +31,7 @@ export class UserService {
         email: `%${email.toLowerCase()}%`,
       });
     }
-    const result = await paginate<UserEntity>(this.userRepo, options, {
-      email,
-    });
+    const result = await paginate<UserEntity>(queryBuilder, options);
     return result;
   }
 
