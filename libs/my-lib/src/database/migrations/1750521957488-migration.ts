@@ -1,15 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration1751198276423 implements MigrationInterface {
-  name = 'Migration1751198276423';
+export class Migration1750521957488 implements MigrationInterface {
+  name = 'Migration1750521957488';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`ALTER TABLE "user_entity"
-      ALTER COLUMN "balance" SET NOT NULL`);
+      ADD "deletedAt" TIMESTAMP`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "user_entity"
-      ALTER COLUMN "balance" DROP NOT NULL`);
+    await queryRunner.query(`ALTER TABLE "user_entity" DROP COLUMN "deletedAt"`);
   }
 }

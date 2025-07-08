@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   logger = new Logger(RedisService.name);
-  async;
   private client: Redis;
 
   constructor(private readonly configService: ConfigService) {}

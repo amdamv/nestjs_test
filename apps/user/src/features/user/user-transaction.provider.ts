@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UserEntity } from '../../databases/entities/user.entity';
 import { DataSource, QueryRunner } from 'typeorm';
 import { TransactionResponseDto } from './dto/response/transaction-response.dto';
+import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 
 @Injectable()
 export class UserTransactionProvider {

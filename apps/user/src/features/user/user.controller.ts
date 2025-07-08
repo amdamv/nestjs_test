@@ -14,21 +14,21 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
-import { UserEntity } from '../../databases/entities/user.entity';
 import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { User } from './user-decorator/user.decorator';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-file.interface';
+import { IUploadedMulterFile } from '../../databases/providers/files/s3/interfaces/upload-file.interface';
 import { CreateAvatarDto } from './dto/create-avatar.dto';
-import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
+import { RemoveFilePayloadDto } from '../../databases/providers/files/s3/dto/remove-file-payload.dto';
 import { RedisService } from '../../databases/redis/redis.service';
 import { TransactionDto } from './dto/transaction.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserTransactionProvider } from './user-transaction.provider';
 import { UpdateUserDto } from './dto/update.user.dto';
+import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 
 @ApiTags('User')
 @UseGuards(JwtAuthGuard)

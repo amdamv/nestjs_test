@@ -12,5 +12,5 @@ export class PaginationQueryDto {
 
   @IsOptional()
   @IsString()
-  email: string
+  email: string;
 }

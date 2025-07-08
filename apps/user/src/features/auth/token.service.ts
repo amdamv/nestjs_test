@@ -1,14 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserEntity } from '../../databases/entities/user.entity';
-import { TokenInterface } from './interface/token.interface';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { RedisService } from '../../databases/redis/redis.service';
 import * as bcrypt from 'bcrypt';
-import { JwtPayload } from './interface/jwt-payload.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { TokenInterface } from './interface/token.interface';
+import { JwtPayload } from './interface/jwt-payload.interface';
+import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 
 @Injectable()
 export class TokenService {
@@ -23,7 +23,7 @@ export class TokenService {
   async generateTokens(userEntity: UserEntity): Promise<TokenInterface> {
     const payload = { id: userEntity.id, email: userEntity.email };
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+      secret: this.configService.get('JWT_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_MS'),
     });
     const refreshToken = await this.jwtService.signAsync(payload, {
@@ -58,7 +58,7 @@ export class TokenService {
     if (!user || !user.refreshToken) {
       throw new UnauthorizedException('invalid user');
     }
-    const inValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    const inValid: boolean = await bcrypt.compare(refreshToken, user.refreshToken);
     if (!inValid) {
       throw new UnauthorizedException('invalid refresh token');
     }

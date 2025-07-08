@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../databases/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { CreateAvatarDto } from './dto/create-avatar.dto';
-import { IUploadedMulterFile } from '../../providers/files/s3/interfaces/upload-file.interface';
-import { IFileService } from 'src/providers/files/files.adapter';
-import { RemoveFilePayloadDto } from '../../providers/files/s3/dto/remove-file-payload.dto';
+import { IUploadedMulterFile } from '../../databases/providers/files/s3/interfaces/upload-file.interface';
+import { IFileService } from '../../databases/providers/files/files.adapter';
+import { RemoveFilePayloadDto } from '../../databases/providers/files/s3/dto/remove-file-payload.dto';
+import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 
 @Injectable()
 export class UserService {

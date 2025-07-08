@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 import { RedisModule } from '../../databases/redis/redis.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from 'src/databases/entities/user.entity';
+import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 
 @Module({
   imports: [
@@ -30,6 +30,6 @@ import { UserEntity } from 'src/databases/entities/user.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtService, LocalStrategy, JwtStrategy, TokenService],
-  exports: [AuthService],
+  exports: [AuthService, TokenService],
 })
 export class AuthModule {}

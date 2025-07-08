@@ -1,11 +1,11 @@
-import { UserEntity } from '../entities/user.entity';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 
 config();
 
-export const getTypeormConfig = (configService: ConfigService,): TypeOrmModuleOptions => ({
+export const getTypeormConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
   type: 'postgres',
   host: configService.get('PG_HOST'),
   port: configService.get('PG_PORT') || 5432,
@@ -16,4 +16,4 @@ export const getTypeormConfig = (configService: ConfigService,): TypeOrmModuleOp
   migrations: ['dist/migrations/*.ts'],
   synchronize: false,
   autoLoadEntities: true,
-})
+});
