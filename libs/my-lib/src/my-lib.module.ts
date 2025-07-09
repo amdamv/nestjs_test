@@ -17,7 +17,6 @@ import { Module } from '@nestjs/common';
         signOptions: { expiresIn: configService.get('JWT_ACCESS_TOKEN_EXPIRATION_MS') },
       }),
     }),
-    ConfigModule,
   ],
   providers: [JwtUtilsService],
   exports: [JwtUtilsService],
