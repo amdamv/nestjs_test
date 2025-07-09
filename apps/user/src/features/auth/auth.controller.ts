@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 import { ApiTags } from '@nestjs/swagger';
 import { UserEntity } from '@app/my-lib/database/entities/user.entity';
-import * as ms from 'ms';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -26,7 +25,7 @@ export class AuthController {
       throw new UnauthorizedException('No refresh token');
     }
     const { accessToken, refreshToken } = await this.tokenService.refreshTokens(incomingToken);
-    const maxAge = ms(this.configService.get('REFRESH_TOKEN_EXPIRES_IN'));
+    const maxAge = Number(this.configService.get('REFRESH_TOKEN_EXPIRES_IN'));
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,
@@ -40,7 +39,7 @@ export class AuthController {
   @Post('login')
   async login(@CurrentUser() userEntity: UserEntity, @Res({ passthrough: true }) res: Response) {
     const { accessToken, refreshToken } = await this.authService.login(userEntity);
-    const maxAge = ms(this.configService.get('REFRESH_TOKEN_EXPIRES_IN') || '7d');
+    const maxAge = Number(this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN'));
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,

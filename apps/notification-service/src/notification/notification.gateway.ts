@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
@@ -23,24 +25,20 @@ export class NotificationGateway implements OnGatewayInit, OnGatewayConnection, 
     this.logger.log('Initialized');
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     this.logger.log(`Client id: ${client.id} connected`);
-    try {
-      console.log('getting started here');
-      const authHeader = client.handshake.headers.authorization;
-      console.log('2 here should be client.handshake.headers.authorization', client.handshake.headers.authorization);
-      if (!authHeader) {
-        throw new BadRequestException('authHeader not found');
-      }
-      const { userId: uid } = this.jwtUtilsService.verifyJwt(authHeader);
-      (client.data as { userId: string }).userId = uid;
-      console.log('here last values', uid, 'and some', { userId: uid });
-      client.join(uid);
-    } catch (err) {
-      this.logger.warn(`Client id: ${client.id} disconnected`, err);
-      client.disconnect();
-      return;
+    const authHeader = client.handshake.headers.authorization;
+    if (!authHeader) {
+      throw new BadRequestException('authHeader not found');
     }
+    const { userId: uid } = this.jwtUtilsService.verifyJwt(authHeader);
+    (client.data as { userId: string }).userId = uid;
+    await client.join(uid);
+  }
+
+  @SubscribeMessage('notifications')
+  sendNotification(@ConnectedSocket() client: Socket, @MessageBody() payload: { userId: string }) {
+    this.io.to(payload.userId).emit('notification', { data: 'hello' });
   }
 
   handleDisconnect(client: Socket) {
