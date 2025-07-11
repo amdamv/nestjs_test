@@ -1,13 +1,17 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { TransactionResponseDto } from './dto/response/transaction-response.dto';
 import { UserEntity } from '@app/my-lib/database/entities/user.entity';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class UserTransactionProvider {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    @Inject('NatsService') private natsClient: ClientProxy,
+  ) {}
 
-  async transaferFunds(senderId: string, receiverId: string, amount: number): Promise<TransactionResponseDto> {
+  async transferFunds(senderId: string, receiverId: string, amount: number): Promise<TransactionResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -15,6 +19,7 @@ export class UserTransactionProvider {
       await this.senderTransaction(senderId, amount, queryRunner);
       await this.receiverTransaction(receiverId, amount, queryRunner);
       await queryRunner.commitTransaction();
+      this.natsClient.emit('notificationTransaction', { senderId, receiverId, amount });
       return { senderId, receiverId, amount, message: 'Transaction completed successfully' };
     } catch (err) {
       await queryRunner.rollbackTransaction();

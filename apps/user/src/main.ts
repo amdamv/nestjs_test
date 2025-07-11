@@ -5,9 +5,17 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import * as express from 'express';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.NATS,
+    options: {
+      servers: configService.get('NATS_SERVERS'),
+    },
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -27,7 +35,6 @@ async function bootstrap() {
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
-  const configService = app.get(ConfigService);
   await app.listen(configService.get('PORT') || 3000);
 }
 

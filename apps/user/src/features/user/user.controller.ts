@@ -111,6 +111,6 @@ export class UserController {
   @Post('transaction')
   async userTransaction(@User('id') id: string, @Body() transactionDto: TransactionDto) {
     const { receiverId, amount } = transactionDto;
-    return this.userTransactionProvider.transaferFunds(id, receiverId, amount);
+    return this.userTransactionProvider.transferFunds(id, receiverId, amount);
   }
 }
