@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
-  ConnectedSocket,
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
@@ -36,9 +34,8 @@ export class NotificationGateway implements OnGatewayInit, OnGatewayConnection, 
     await client.join(uid);
   }
 
-  @SubscribeMessage('notifications')
-  sendNotification(@ConnectedSocket() client: Socket, @MessageBody() payload: { userId: string }) {
-    this.io.to(payload.userId).emit('notification', { data: 'hello' });
+  sendNotification(userId: string, message: string) {
+    this.io.to(String(userId)).emit('notification', { message });
   }
 
   handleDisconnect(client: Socket) {
