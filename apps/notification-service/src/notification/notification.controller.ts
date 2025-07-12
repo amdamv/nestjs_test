@@ -11,7 +11,7 @@ export class NotificationController {
   sendNotification(@Payload() payload: { senderId: string; receiverId: string; amount: number }) {
     console.log(payload);
     const { senderId, receiverId, amount } = payload;
-    this.notificationGateway.sendNotification(senderId, `You send ${amount} to user $${receiverId}`);
+    this.notificationGateway.sendNotification(senderId, `You send $${amount} to user ${receiverId}`);
     this.notificationGateway.sendNotification(receiverId, `You received $${amount} from user ${senderId}`);
   }
 }
