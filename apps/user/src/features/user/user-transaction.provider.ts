@@ -1,11 +1,13 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { DataSource, QueryRunner } from 'typeorm';
+import { Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { DataSource, EntityManager } from 'typeorm';
 import { TransactionResponseDto } from './dto/response/transaction-response.dto';
 import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class UserTransactionProvider {
+  logger = new Logger(UserTransactionProvider.name);
+
   constructor(
     private readonly dataSource: DataSource,
     @Inject('NatsService') private natsClient: ClientProxy,
@@ -16,24 +18,29 @@ export class UserTransactionProvider {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      await this.senderTransaction(senderId, amount, queryRunner);
-      await this.receiverTransaction(receiverId, amount, queryRunner);
+      const manager = queryRunner.manager;
+
+      await this.receiverTransaction(receiverId, amount, manager);
+
       await queryRunner.commitTransaction();
+
       this.natsClient.emit('notificationTransaction', { senderId, receiverId, amount });
       return { senderId, receiverId, amount, message: 'Transaction completed successfully' };
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      this.logger.error('transactions is declined:', err);
       throw new InternalServerErrorException(`transactions is declined:  ${err}`);
     } finally {
       await queryRunner.release();
     }
   }
 
-  async senderTransaction(userId: string, amount: number, queryRunner: QueryRunner) {
-    const result = await queryRunner.manager
+  async senderTransaction(userId: string, amount: number, manager: EntityManager) {
+    const result = await manager
       .createQueryBuilder()
       .update(UserEntity)
-      .set({ balance: () => `"balance" - ${amount}` })
+      .set({ balance: () => `"balance" - :amount` })
+      .setParameters({ amount })
       .where('id = :id', { id: userId })
       .andWhere('balance >= :amount', { amount })
       .execute();
@@ -43,14 +50,15 @@ export class UserTransactionProvider {
     }
   }
 
-  async receiverTransaction(userId: string, amount: number, queryRunner: QueryRunner) {
-    const result = await queryRunner.manager
+  async receiverTransaction(userId: string, amount: number, manager: EntityManager) {
+    const result = await manager
       .createQueryBuilder()
       .update(UserEntity)
-      .set({ balance: () => `"balance" + ${amount}` })
+      .set({ balance: () => `"balance" + :amount` })
+      .setParameters({ amount })
       .where('id = :id', { id: userId })
       .execute();
-    console.log(result);
+    this.logger.log(`Receiver updated: , ${JSON.stringify(result)}`);
     if (result.affected === 0) {
       throw new NotFoundException(`Recipient ${userId} not found...`);
     }

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   ParseIntPipe,
   Patch,
@@ -17,7 +18,7 @@ import { CreateUserDto } from './dto/user.dto';
 import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { User } from './user-decorator/user.decorator';
+import { User } from '../decorator/user.decorator';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IUploadedMulterFile } from '../../databases/providers/files/s3/interfaces/upload-file.interface';
@@ -34,6 +35,8 @@ import { UserEntity } from '@app/my-lib/database/entities/user.entity';
 @UseGuards(JwtAuthGuard)
 @Controller('user')
 export class UserController {
+  logger = new Logger(UserController.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly redisService: RedisService,
@@ -64,7 +67,7 @@ export class UserController {
 
   @Get('me')
   async me(@User() user: UserEntity) {
-    console.log(user);
+    this.logger.log('user: ', user);
     return this.userService.profile(user.id);
   }
 
@@ -72,13 +75,13 @@ export class UserController {
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
     const key = `userId: ${id}`;
     const cached = await this.redisService.getObject<UserEntity>(key);
-    console.log('cached user: ', cached);
+    this.logger.log('cached user: ', cached);
     if (cached) {
       return cached;
     }
     const user = await this.userService.findOnebyId(id);
     await this.redisService.setObject(key, user, 60);
-    console.log('Not Cached yet: ', user);
+    this.logger.log('Not Cached yet: ', user);
     return user;
   }
 
@@ -91,7 +94,7 @@ export class UserController {
   @Post('avatar/upload-photo')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@Body() dto: CreateAvatarDto, @UploadedFile() file: IUploadedMulterFile, @User('id') id: string) {
-    console.log('Current user id:', id);
+    this.logger.log('Current user id:', id);
     return this.userService.createAvatar(dto, file, id);
   }
 

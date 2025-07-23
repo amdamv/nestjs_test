@@ -4,8 +4,8 @@ import { Queue } from 'bullmq';
 import { JobId, QueueJobName, QueueNames } from './constants/queue-names';
 
 @Injectable()
-export class QueueService {
-  private logger = new Logger(QueueService.name);
+export class BalanceResetQueueService {
+  private logger = new Logger(BalanceResetQueueService.name);
 
   constructor(@InjectQueue(QueueNames.QUEUE_NAME_RESET) private myQueue: Queue) {}
 

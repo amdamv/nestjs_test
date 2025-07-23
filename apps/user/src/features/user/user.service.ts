@@ -71,7 +71,7 @@ export class UserService {
 
   async createAvatar(dto: CreateAvatarDto, file: IUploadedMulterFile, id: string) {
     const { path } = await this.fileService.uploadFile({ file, folder: dto.folder, name: dto.name });
-    console.log('user id:', id, 'Path: ', path);
+    this.logger.log('user id:', id, 'Path: ', path);
     await this.userRepo.update(id, { avatar: path });
     return { path };
   }

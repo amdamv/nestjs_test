@@ -1,9 +1,9 @@
-import { QueueService } from './queue.service';
+import { BalanceResetQueueService } from './balance-reset-queue.service';
 import { Controller, Delete, Get } from '@nestjs/common';
 
 @Controller('reset')
-export class QueueController {
-  constructor(private readonly queueService: QueueService) {}
+export class BalanceResetQueueController {
+  constructor(private readonly queueService: BalanceResetQueueService) {}
 
   @Get('monthly-reset-balace')
   async resetBalance() {

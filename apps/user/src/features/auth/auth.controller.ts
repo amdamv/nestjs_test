@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Param, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/user.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 import { ApiTags } from '@nestjs/swagger';
 import { UserEntity } from '@app/my-lib/database/entities/user.entity';
+import { User } from '../decorator/user.decorator';
+import { LoginDto } from './dto/login.dto';
+import { console } from 'node:inspector';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -19,8 +21,8 @@ export class AuthController {
   ) {}
 
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const incomingToken: string | undefined = (req.cookies as Record<string, string> | undefined)?.['refresh_token'];
+  async refresh(@User() user: Request, @Res({ passthrough: true }) res: Response) {
+    const incomingToken: string | undefined = (user.cookies as Record<string, string> | undefined)?.['refresh_token'];
     if (!incomingToken) {
       throw new UnauthorizedException('No refresh token');
     }
@@ -37,8 +39,9 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@CurrentUser() userEntity: UserEntity, @Res({ passthrough: true }) res: Response) {
-    const { accessToken, refreshToken } = await this.authService.login(userEntity);
+  async login(@User() user: LoginDto, @Res({ passthrough: true }) res: Response) {
+    console.log('coming');
+    const { accessToken, refreshToken } = await this.authService.login(user);
     const maxAge = Number(this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN'));
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
@@ -50,10 +53,8 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() dto: CreateUserDto) {
-    const result = this.authService.register(dto);
-    console.log(result);
-    return result;
+  async register(@Body() dto: CreateUserDto): Promise<UserEntity> {
+    return this.authService.register(dto);
   }
 
   @Get('debug/:userId')

@@ -63,7 +63,6 @@ export class S3Service extends IFileService {
           Key: path,
         },
         (error) => {
-          console.log(error);
           if (!error) {
             this.logger.log('✅ Removing was successful');
             resolve();

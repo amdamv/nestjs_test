@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
@@ -7,11 +7,14 @@ import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TokenInterface } from './interface/token.interface';
-import { JwtPayload } from './interface/jwt-payload.interface';
+import { JwtPayload } from '@app/my-lib/auth-lib/interfaces/jwt-payload';
 import { UserEntity } from '@app/my-lib/database/entities/user.entity';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class TokenService {
+  logger = new Logger(TokenService.name);
+
   constructor(
     @InjectRepository(UserEntity) private readonly userRepo: Repository<UserEntity>,
     private readonly configService: ConfigService,
@@ -20,8 +23,8 @@ export class TokenService {
     private readonly redisService: RedisService,
   ) {}
 
-  async generateTokens(userEntity: UserEntity): Promise<TokenInterface> {
-    const payload = { id: userEntity.id, email: userEntity.email };
+  async generateTokens(user: LoginDto): Promise<TokenInterface> {
+    const payload = { id: user.id, email: user.email };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get('JWT_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_MS'),
@@ -80,7 +83,7 @@ export class TokenService {
 
   async debugGetRefresh(userId: number) {
     const value = await this.redisService.get(`refresh:${userId}`);
-    console.log('stored in redis: ', value);
+    this.logger.log('stored in redis: ', value);
     return value;
   }
 }

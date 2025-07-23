@@ -1,13 +1,16 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../user/dto/user.dto';
 import { TokenInterface } from './interface/token.interface';
 import { TokenService } from './token.service';
 import { UserEntity } from '@app/my-lib/database/entities/user.entity';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
+  logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
@@ -25,15 +28,15 @@ export class AuthService {
     return user;
   }
 
-  async login(userEntity: UserEntity): Promise<TokenInterface> {
-    const tokens: TokenInterface = await this.tokenService.generateTokens(userEntity);
-    await this.tokenService.saveRefreshToken(userEntity.id, tokens.refreshToken);
+  async login(credentials: LoginDto): Promise<TokenInterface> {
+    const tokens: TokenInterface = await this.tokenService.generateTokens(credentials);
+    await this.tokenService.saveRefreshToken(credentials.id, tokens.refreshToken);
     return tokens;
   }
 
   async register(userDto: CreateUserDto): Promise<UserEntity> {
     const existUser = await this.userService.findOneByEmail(userDto.email);
-    console.log(existUser);
+    this.logger.log(existUser);
     if (existUser) {
       throw new BadRequestException('User already exists');
     }
