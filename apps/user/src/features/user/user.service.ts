@@ -90,7 +90,7 @@ export class UserService {
     return userUpdate;
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: number): Promise<UserEntity> {
     const user = await this.findOnebyId(id);
     return this.userRepo.softRemove(user);
   }
